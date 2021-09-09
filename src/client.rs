@@ -718,10 +718,11 @@ mod tests {
 
         let res = client.exchange_public_token(public_token).await.unwrap();
         assert!(!res.access_token.is_empty());
-        // TODO(allancalix): Transaction isn't available immediately after the
-        // token is created, we probably want to find a better way to find out if
-        // the product is ready.
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        // Calling refresh before requesting transactions prevents
+        // `PRODUCT_NOT_READY` errors.
+        client.refresh_transactions(&RefreshTransactionsRequest{
+            access_token: &res.access_token,
+        }).await.unwrap();
         let res = client
             .transactions(&GetTransactionsRequest {
                 access_token: res.access_token.as_str(),
@@ -752,18 +753,19 @@ mod tests {
 
         let res = client.exchange_public_token(public_token).await.unwrap();
         assert!(!res.access_token.is_empty());
-        // TODO(allancalix): Transaction isn't available immediately after the
-        // token is created, we probably want to find a better way to find out if
-        // the product is ready.
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        // Calling refresh before requesting transactions prevents
+        // `PRODUCT_NOT_READY` errors.
+        client.refresh_transactions(&RefreshTransactionsRequest{
+            access_token: &res.access_token,
+        }).await.unwrap();
 
         let req = GetTransactionsRequest {
             access_token: res.access_token.as_str(),
-            start_date: "2019-09-01",
+            start_date: "2021-09-01",
             end_date: "2021-09-05",
             options: Some(GetTransactionsOptions {
                 count: Some(10),
-                offset: Some(5),
+                offset: Some(2),
                 account_ids: None,
                 include_original_description: None,
             }),
@@ -777,7 +779,7 @@ mod tests {
                 acc
             })
             .await;
-        assert_eq!(xacts.len(), 7);
+        assert_eq!(xacts.len(), 4);
     }
 
     #[tokio::test]
