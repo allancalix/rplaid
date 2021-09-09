@@ -1,0 +1,163 @@
+---
+source: src/client.rs
+expression: res
+
+---
+{
+  "accounts": [
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": 100.0,
+        "current": 110.0,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "0000",
+      "name": "Plaid Checking",
+      "official_name": "Plaid Gold Standard 0% Interest Checking",
+      "type": "depository",
+      "subtype": "checking"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": 200.0,
+        "current": 210.0,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "1111",
+      "name": "Plaid Saving",
+      "official_name": "Plaid Silver Standard 0.1% Interest Saving",
+      "type": "depository",
+      "subtype": "savings"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 1000.0,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "2222",
+      "name": "Plaid CD",
+      "official_name": "Plaid Bronze Standard 0.2% Interest CD",
+      "type": "depository",
+      "subtype": "cd"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 410.0,
+        "iso_current_code": null,
+        "limit": 2000.0,
+        "unofficial_currency_code": null
+      },
+      "mask": "3333",
+      "name": "Plaid Credit Card",
+      "official_name": "Plaid Diamond 12.5% APR Interest Credit Card",
+      "type": "credit",
+      "subtype": "credit card"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": 43200.0,
+        "current": 43200.0,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "4444",
+      "name": "Plaid Money Market",
+      "official_name": "Plaid Platinum Standard 1.85% Interest Money Market",
+      "type": "depository",
+      "subtype": "money market"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 320.76,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "5555",
+      "name": "Plaid IRA",
+      "official_name": null,
+      "type": "investment",
+      "subtype": "ira"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 23631.9805,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "6666",
+      "name": "Plaid 401k",
+      "official_name": null,
+      "type": "investment",
+      "subtype": "401k"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 65262.0,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "7777",
+      "name": "Plaid Student Loan",
+      "official_name": null,
+      "type": "loan",
+      "subtype": "student"
+    },
+    {
+      "account_id": "[account_id]",
+      "balances": {
+        "available": null,
+        "current": 56302.06,
+        "iso_current_code": null,
+        "limit": null,
+        "unofficial_currency_code": null
+      },
+      "mask": "8888",
+      "name": "Plaid Mortgage",
+      "official_name": null,
+      "type": "loan",
+      "subtype": "mortgage"
+    }
+  ],
+  "item": {
+    "item_id": "[item_id]",
+    "institution_id": "ins_129571",
+    "webhook": "",
+    "error": null,
+    "available_products": [
+      "balance"
+    ],
+    "billed_products": [
+      "assets",
+      "auth",
+      "identity",
+      "transactions"
+    ],
+    "consent_expiration_time": null,
+    "update_type": "background",
+    "status": null
+  },
+  "request_id": "[request_id]"
+}

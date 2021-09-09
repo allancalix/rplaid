@@ -1,0 +1,37 @@
+[package]
+name = "rplaid"
+version = "0.2.0"
+authors = ["Allan Calix <allan@acx.dev>"]
+edition = "2018"
+description = """
+An async client library for Plaid APIs.
+"""
+homepage = "https://github.com/allancalix/rplaid"
+documentation = "https://docs.rs/rplaid"
+repository = "https://github.com/allancalix/rplaid"
+readme = "README.md"
+keywords = ["plaid", "api", "client", "async", "finance"]
+categories = ["api-bindings"]
+exclude = ["/.github/*"]
+license = "MIT"
+
+[features]
+default = ["streams"]
+bare = []
+streams = ["async-stream", "futures-core", "futures-util"]
+
+[dependencies]
+http-client = "6.5.1"
+tokio = { version = "1", features = ["macros"] }
+http-types = "2.12.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0.28"
+async-stream = { version = "0.3.2", optional = true }
+futures-core = { version = "0.3.17", optional = true }
+futures-util = { version = "0.3.17", optional = true }
+
+[dev-dependencies]
+insta = { version = "1.7.2", features = ["redactions"] }
+tokio = { version = "1", features = ["test-util", "rt-multi-thread"] }
+http-client = { version = "6.5.1", features = ["curl_client", "rustls"] }

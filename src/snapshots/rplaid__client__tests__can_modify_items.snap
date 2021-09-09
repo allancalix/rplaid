@@ -1,0 +1,23 @@
+---
+source: src/client.rs
+expression: item
+
+---
+{
+  "item_id": "[item_id]",
+  "institution_id": "ins_129571",
+  "webhook": "",
+  "error": null,
+  "available_products": [
+    "balance",
+    "identity",
+    "transactions"
+  ],
+  "billed_products": [
+    "assets",
+    "auth"
+  ],
+  "consent_expiration_time": null,
+  "update_type": "background",
+  "status": null
+}

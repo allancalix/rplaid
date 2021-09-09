@@ -1,0 +1,21 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+jobs:
+  linux:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - uses: actions-rs/cargo@v1
+      env:
+          PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
+          PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
+      with:
+        command: test

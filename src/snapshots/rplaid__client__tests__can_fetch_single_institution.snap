@@ -1,0 +1,24 @@
+---
+source: src/client.rs
+expression: res
+
+---
+{
+  "institution_id": "ins_129571",
+  "name": "Bank21",
+  "products": [
+    "assets",
+    "auth",
+    "balance",
+    "transactions",
+    "identity"
+  ],
+  "country_codes": [
+    "US"
+  ],
+  "url": null,
+  "primary_color": null,
+  "logo": null,
+  "routing_numbers": [],
+  "oauth": false
+}
