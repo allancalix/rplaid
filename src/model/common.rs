@@ -17,7 +17,7 @@ pub(crate) trait Endpoint: HttpSerialize {
     }
 }
 
-#[derive(thiserror::Error, Debug, Serialize, Deserialize, Default)]
+#[derive(thiserror::Error, Debug, Deserialize, Serialize, Eq, PartialEq, Default)]
 #[error("request failed with code {error_code:?}: {display_message:?}")]
 pub struct ErrorResponse {
     pub display_message: Option<String>,

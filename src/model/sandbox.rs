@@ -83,7 +83,7 @@ pub struct FireWebhookRequest<T: AsRef<str>> {
     pub webhook_code: WebhookCode,
 }
 
-#[derive(Debug, Serialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum WebhookCode {
     #[serde(rename = "DEFAULT_UPDATE")]
     DefaultUpdate,

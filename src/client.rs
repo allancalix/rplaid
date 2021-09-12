@@ -1,6 +1,5 @@
 use http_client::h1::H1Client;
 use http_client::Error as HttpError;
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::model::*;
@@ -43,7 +42,7 @@ impl From<HttpError> for ClientError {
 
 /// Environment controls the domain for the client, matches Plaid's sandbox,
 /// development, and production environments.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Environment {
     /// Used to configure the client to request against a the domain in the string.
     /// Should be a fully qualified domain with protocol and scheme, for example
@@ -720,9 +719,12 @@ mod tests {
         assert!(!res.access_token.is_empty());
         // Calling refresh before requesting transactions prevents
         // `PRODUCT_NOT_READY` errors.
-        client.refresh_transactions(&RefreshTransactionsRequest{
-            access_token: &res.access_token,
-        }).await.unwrap();
+        client
+            .refresh_transactions(&RefreshTransactionsRequest {
+                access_token: &res.access_token,
+            })
+            .await
+            .unwrap();
         let res = client
             .transactions(&GetTransactionsRequest {
                 access_token: res.access_token.as_str(),
@@ -755,9 +757,12 @@ mod tests {
         assert!(!res.access_token.is_empty());
         // Calling refresh before requesting transactions prevents
         // `PRODUCT_NOT_READY` errors.
-        client.refresh_transactions(&RefreshTransactionsRequest{
-            access_token: &res.access_token,
-        }).await.unwrap();
+        client
+            .refresh_transactions(&RefreshTransactionsRequest {
+                access_token: &res.access_token,
+            })
+            .await
+            .unwrap();
 
         let req = GetTransactionsRequest {
             access_token: res.access_token.as_str(),

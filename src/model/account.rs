@@ -44,7 +44,7 @@ pub struct Account {
     pub verification_status: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum AccountType {
     #[serde(rename = "investment")]
     Investment,
