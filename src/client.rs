@@ -1,5 +1,6 @@
 use http_client::h1::H1Client;
 use http_client::Error as HttpError;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::model::*;
@@ -42,7 +43,7 @@ impl From<HttpError> for ClientError {
 
 /// Environment controls the domain for the client, matches Plaid's sandbox,
 /// development, and production environments.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Environment {
     /// Used to configure the client to request against a the domain in the string.
     /// Should be a fully qualified domain with protocol and scheme, for example
