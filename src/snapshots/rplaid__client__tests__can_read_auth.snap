@@ -1,7 +1,6 @@
 ---
 source: src/client.rs
 expression: res
-
 ---
 {
   "accounts": [
@@ -166,11 +165,11 @@ expression: res
     "webhook": "",
     "error": null,
     "available_products": [
+      "assets",
       "balance",
       "identity"
     ],
     "billed_products": [
-      "assets",
       "auth",
       "transactions"
     ],

@@ -1,7 +1,6 @@
 ---
 source: src/client.rs
 expression: res.transactions
-
 ---
 [
   {
@@ -21,7 +20,8 @@ expression: res.transactions
     "pending": false,
     "transaction_id": "[transaction_id]",
     "payment_channel": "in store",
-    "merchant_name": "Touchstone"
+    "merchant_name": "Touchstone",
+    "authorized_date": "2021-09-04"
   },
   {
     "transaction_type": "special",
@@ -40,7 +40,8 @@ expression: res.transactions
     "pending": false,
     "transaction_id": "[transaction_id]",
     "payment_channel": "other",
-    "merchant_name": "United Airlines"
+    "merchant_name": "United Airlines",
+    "authorized_date": "2021-09-05"
   },
   {
     "transaction_type": "place",
@@ -62,7 +63,8 @@ expression: res.transactions
     "pending": false,
     "transaction_id": "[transaction_id]",
     "payment_channel": "in store",
-    "merchant_name": "McDonald's"
+    "merchant_name": "McDonald's",
+    "authorized_date": "2021-09-04"
   },
   {
     "transaction_type": "place",
@@ -82,7 +84,8 @@ expression: res.transactions
     "pending": false,
     "transaction_id": "[transaction_id]",
     "payment_channel": "in store",
-    "merchant_name": "Starbucks"
+    "merchant_name": "Starbucks",
+    "authorized_date": "2021-09-04"
   },
   {
     "transaction_type": "place",
@@ -101,7 +104,8 @@ expression: res.transactions
     "pending": false,
     "transaction_id": "[transaction_id]",
     "payment_channel": "in store",
-    "merchant_name": "Sparkfun"
+    "merchant_name": "Sparkfun",
+    "authorized_date": "2021-09-02"
   },
   {
     "transaction_type": "special",
@@ -119,6 +123,7 @@ expression: res.transactions
     "date": "2021-09-02",
     "pending": false,
     "transaction_id": "[transaction_id]",
-    "payment_channel": "other"
+    "payment_channel": "other",
+    "authorized_date": "2021-09-02"
   }
 ]

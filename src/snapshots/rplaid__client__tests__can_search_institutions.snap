@@ -1,7 +1,6 @@
 ---
 source: src/client.rs
 expression: res
-
 ---
 [
   {
@@ -47,26 +46,6 @@ expression: res
   {
     "institution_id": "ins_122875",
     "name": "Banque Populaire - Auvergne et Rhône-Alpes",
-    "products": [
-      "assets",
-      "auth",
-      "balance",
-      "transactions",
-      "identity",
-      "payment_initiation"
-    ],
-    "country_codes": [
-      "FR"
-    ],
-    "url": null,
-    "primary_color": null,
-    "logo": null,
-    "routing_numbers": [],
-    "oauth": true
-  },
-  {
-    "institution_id": "ins_122885",
-    "name": "Banque Populaire - Banque de Savoie",
     "products": [
       "assets",
       "auth",
@@ -167,6 +146,26 @@ expression: res
   {
     "institution_id": "ins_122879",
     "name": "Banque Populaire - Sud",
+    "products": [
+      "assets",
+      "auth",
+      "balance",
+      "transactions",
+      "identity",
+      "payment_initiation"
+    ],
+    "country_codes": [
+      "FR"
+    ],
+    "url": null,
+    "primary_color": null,
+    "logo": null,
+    "routing_numbers": [],
+    "oauth": true
+  },
+  {
+    "institution_id": "ins_122877",
+    "name": "Banque Populaire - Val de France",
     "products": [
       "assets",
       "auth",

@@ -1,7 +1,6 @@
 ---
 source: src/client.rs
 expression: item
-
 ---
 {
   "item_id": "[item_id]",
@@ -9,12 +8,12 @@ expression: item
   "webhook": "",
   "error": null,
   "available_products": [
+    "assets",
     "balance",
     "identity",
     "transactions"
   ],
   "billed_products": [
-    "assets",
     "auth"
   ],
   "consent_expiration_time": null,

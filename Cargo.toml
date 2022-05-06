@@ -1,8 +1,8 @@
 [package]
 name = "rplaid"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Allan Calix <allan@acx.dev>"]
-edition = "2018"
+edition = "2021"
 description = """
 An async client library for Plaid APIs.
 """
@@ -30,6 +30,7 @@ thiserror = "1.0.28"
 async-stream = { version = "0.3.2", optional = true }
 futures-core = { version = "0.3.17", optional = true }
 futures-util = { version = "0.3.17", optional = true }
+insta = "1.7.2"
 
 [dev-dependencies]
 insta = { version = "1.7.2", features = ["redactions"] }

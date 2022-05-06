@@ -1,7 +1,6 @@
 ---
 source: src/client.rs
 expression: res
-
 ---
 {
   "institution_id": "ins_129571",
@@ -19,6 +18,9 @@ expression: res
   "url": null,
   "primary_color": null,
   "logo": null,
-  "routing_numbers": [],
+  "routing_numbers": [
+    "011401533",
+    "101908988"
+  ],
   "oauth": false
 }
