@@ -9,7 +9,7 @@ expression: res
       "balances": {
         "available": 100.0,
         "current": 110.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -24,7 +24,7 @@ expression: res
       "balances": {
         "available": 200.0,
         "current": 210.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -39,7 +39,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 1000.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -54,7 +54,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 410.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": 2000.0,
         "unofficial_currency_code": null
       },
@@ -69,7 +69,7 @@ expression: res
       "balances": {
         "available": 43200.0,
         "current": 43200.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -84,7 +84,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 320.76,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -99,7 +99,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 23631.9805,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -114,7 +114,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 65262.0,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },
@@ -129,7 +129,7 @@ expression: res
       "balances": {
         "available": null,
         "current": 56302.06,
-        "iso_current_code": null,
+        "iso_currency_code": "USD",
         "limit": null,
         "unofficial_currency_code": null
       },

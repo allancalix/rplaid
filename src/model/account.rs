@@ -64,7 +64,7 @@ pub enum AccountType {
 pub struct Balance {
     pub available: Option<f64>,
     pub current: Option<f64>,
-    pub iso_current_code: Option<String>,
+    pub iso_currency_code: Option<String>,
     pub limit: Option<f64>,
     pub unofficial_currency_code: Option<String>,
 }
