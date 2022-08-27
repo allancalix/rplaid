@@ -33,6 +33,6 @@ futures-util = { version = "0.3.17", optional = true }
 insta = "1.7.2"
 
 [dev-dependencies]
-insta = { version = "1.7.2", features = ["redactions"] }
+insta = { version = "1.19", features = ["redactions", "json"] }
 tokio = { version = "1", features = ["test-util", "rt-multi-thread"] }
 http-client = { version = "6.5.1", features = ["curl_client", "rustls"] }
