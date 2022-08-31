@@ -39,7 +39,7 @@ expression: res.transactions
     "date": "2021-09-05",
     "pending": false,
     "transaction_id": "[transaction_id]",
-    "payment_channel": "other",
+    "payment_channel": "in store",
     "merchant_name": "United Airlines",
     "authorized_date": "2021-09-05"
   },

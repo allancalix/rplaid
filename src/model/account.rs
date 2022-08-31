@@ -1,3 +1,6 @@
+#[cfg(feature = "decimal")]
+use rust_decimal::Decimal;
+
 use super::*;
 
 #[derive(Debug, Serialize)]
@@ -62,9 +65,18 @@ pub enum AccountType {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Balance {
+    #[cfg(not(feature = "decimal"))]
     pub available: Option<f64>,
+    #[cfg(not(feature = "decimal"))]
     pub current: Option<f64>,
+    #[cfg(feature = "decimal")]
+    pub available: Option<Decimal>,
+    #[cfg(feature = "decimal")]
+    pub current: Option<Decimal>,
     pub iso_currency_code: Option<String>,
+    #[cfg(feature = "decimal")]
+    pub limit: Option<Decimal>,
+    #[cfg(not(feature = "decimal"))]
     pub limit: Option<f64>,
     pub unofficial_currency_code: Option<String>,
 }

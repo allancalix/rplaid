@@ -1,3 +1,6 @@
+#[cfg(feature = "decimal")]
+use rust_decimal::Decimal;
+
 use super::*;
 
 #[derive(Debug, Serialize, Copy, Clone)]
@@ -97,7 +100,10 @@ pub struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub original_description: Option<String>,
     pub account_id: String,
+    #[cfg(not(feature = "decimal"))]
     pub amount: f64,
+    #[cfg(feature = "decimal")]
+    pub amount: Decimal,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub iso_currency_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

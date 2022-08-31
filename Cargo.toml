@@ -1,6 +1,6 @@
 [package]
 name = "rplaid"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Allan Calix <allan@acx.dev>"]
 edition = "2021"
 description = """
@@ -17,13 +17,14 @@ license = "MIT"
 
 [features]
 default = ["streams"]
-bare = []
 streams = ["async-stream", "futures-core", "futures-util"]
+decimal = ["rust_decimal"]
 
 [dependencies]
 http-client = "6.5.1"
 tokio = { version = "1", features = ["macros"] }
 http-types = "2.12.0"
+rust_decimal = { version = "1.26", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0.28"

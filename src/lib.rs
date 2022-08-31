@@ -36,6 +36,19 @@ __These bindings are not official Plaid bindings.__
   control over the HTTP client used.
 * Rust types, including variant types, for most API return types.
 
+# Create features
+This crate provides a few features that make working with Plaid's APIs more
+ergonomic. Without these features the crate works like a 1:1 translation of
+Plaid's APIs.
+
+* **streams** -
+  When enabled this will add a new method for consuming all transactions available
+  from a future stream without having to worry about pagination or cursors.
+
+* **decimal** -
+  When enabled currency amounts in response payloads will be parsed as
+  `rust_decimal::Decimal` types for more correct use in computations.
+
 # Limitations
 Some endpoints are production specific or beta products and are not yet
 supported by the client.
@@ -51,3 +64,7 @@ pub mod model;
 
 /// Re-exports HttpClient trait for implementing a custom HTTP client.
 pub use http_client::HttpClient;
+
+/// Re-exports Decimal type used for currency amounts.
+#[cfg(feature = "decimal")]
+pub use rust_decimal::Decimal;

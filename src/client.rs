@@ -250,9 +250,9 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         public_token: P,
     ) -> Result<ExchangePublicTokenResponse, ClientError> {
-        Ok(self
+        self
             .request(&ExchangePublicTokenRequest { public_token })
-            .await?)
+            .await
     }
 
     /// Creates a `link_token` that is required as a parameter when initializing
@@ -263,7 +263,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &CreateLinkTokenRequest<'_, P>,
     ) -> Result<CreateLinkTokenResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Retrieves information for any linked item, only active accounts are
@@ -352,7 +352,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetAuthRequest<'_, P>,
     ) -> Result<GetAuthResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Verify the name, address, phone number, and email address of a user
@@ -363,7 +363,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetIdentityRequest<'_, P>,
     ) -> Result<GetIdentityResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Triggers a Transactions `DEFAULT_UPDATE` webhook for a given Sandbox
@@ -375,7 +375,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &FireWebhookRequest<P>,
     ) -> Result<FireWebhookResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Changes the verification status of an Item in the sandbox in order to
@@ -386,7 +386,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &SetVerificationStatusRequest<P>,
     ) -> Result<SetVerificationStatusResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Searches Plaid's database for known employers to use with Deposit
@@ -397,7 +397,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &SearchEmployerRequest<'_, P>,
     ) -> Result<SearchEmployerResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Provides a JSON Web Key (JWK) that can be used to verify a JWT.
@@ -407,7 +407,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetWebhookVerificationKeyRequest<P>,
     ) -> Result<GetWebhookVerificationKeyResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Gets information about a `link_token`, can be useful for debugging.
@@ -417,7 +417,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetLinkTokenRequest<P>,
     ) -> Result<GetLinkTokenResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Rotate the `access_token` associated with an Item. Call returns a new
@@ -428,7 +428,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &InvalidateAccessTokenRequest<P>,
     ) -> Result<InvalidateAccessTokenResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Get detailed information on categories returned by Plaid. This endpoint
@@ -439,7 +439,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetCategoriesRequest,
     ) -> Result<GetCategoriesResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Initiates on-demand extraction to fetch the newest transactions for an
@@ -465,7 +465,7 @@ impl<T: HttpClient> Plaid<T> {
         &self,
         req: &GetTransactionsRequest<P>,
     ) -> Result<GetTransactionsResponse, ClientError> {
-        Ok(self.request(req).await?)
+        self.request(req).await
     }
 
     /// Returns a Stream of transactions that can be used to iterative fetch
