@@ -24,15 +24,13 @@ decimal = ["rust_decimal"]
 async-stream = { version = "0.3.2", optional = true }
 futures-core = { version = "0.3.17", optional = true }
 futures-util = { version = "0.3.17", optional = true }
-http-client = "6.5.1"
-http-types = "2.12.0"
+hyper = { version = "0.14", default-fatures = false, features = ["client", "http1"] }
+hyper-tls = "0.5"
 rust_decimal = { version = "1.26", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "1.0.28"
-tokio = { version = "1", features = ["macros"] }
+thiserror = "1.0"
 
 [dev-dependencies]
 insta = { version = "1.19", features = ["redactions", "json"] }
-tokio = { version = "1", features = ["test-util", "rt-multi-thread"] }
-http-client = { version = "6.5.1", features = ["curl_client", "rustls"] }
+tokio = { version = "1.20", default-features = false, features = ["macros", "test-util", "rt-multi-thread"] }

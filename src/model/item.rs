@@ -5,7 +5,7 @@ pub struct GetItemRequest<T: AsRef<str>> {
     pub access_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetItemRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetItemRequest<T> {
     type Response = GetItemResponse;
 
     fn path(&self) -> String {
@@ -25,7 +25,7 @@ pub struct RemoveItemRequest<T: AsRef<str>> {
     pub access_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for RemoveItemRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for RemoveItemRequest<T> {
     type Response = RemoveItemResponse;
 
     fn path(&self) -> String {
@@ -45,7 +45,7 @@ pub struct UpdateItemWebhookRequest<T: AsRef<str>> {
     pub webhook: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for UpdateItemWebhookRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for UpdateItemWebhookRequest<T> {
     type Response = UpdateItemWebhookResponse;
 
     fn path(&self) -> String {

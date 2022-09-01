@@ -5,7 +5,7 @@ pub struct GetWebhookVerificationKeyRequest<T: AsRef<str>> {
     pub key_id: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetWebhookVerificationKeyRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetWebhookVerificationKeyRequest<T> {
     type Response = GetWebhookVerificationKeyResponse;
 
     fn path(&self) -> String {

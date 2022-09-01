@@ -5,7 +5,7 @@ pub struct ExchangePublicTokenRequest<T: AsRef<str>> {
     pub public_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for ExchangePublicTokenRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for ExchangePublicTokenRequest<T> {
     type Response = ExchangePublicTokenResponse;
 
     fn path(&self) -> String {
@@ -41,7 +41,7 @@ pub struct CreateLinkTokenRequest<'a, T: AsRef<str>> {
     pub institution_id: Option<T>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for CreateLinkTokenRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for CreateLinkTokenRequest<'_, T> {
     type Response = CreateLinkTokenResponse;
 
     fn path(&self) -> String {
@@ -121,7 +121,7 @@ pub struct GetLinkTokenRequest<T: AsRef<str>> {
     pub link_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetLinkTokenRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetLinkTokenRequest<T> {
     type Response = GetLinkTokenResponse;
 
     fn path(&self) -> String {
@@ -142,7 +142,7 @@ pub struct InvalidateAccessTokenRequest<T: AsRef<str>> {
     pub access_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for InvalidateAccessTokenRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for InvalidateAccessTokenRequest<T> {
     type Response = InvalidateAccessTokenResponse;
 
     fn path(&self) -> String {

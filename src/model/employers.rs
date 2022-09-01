@@ -7,7 +7,7 @@ pub struct SearchEmployerRequest<'a, T: AsRef<str>> {
     pub products: &'a [T],
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for SearchEmployerRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for SearchEmployerRequest<'_, T> {
     type Response = SearchEmployerResponse;
 
     fn path(&self) -> String {

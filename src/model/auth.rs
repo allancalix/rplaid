@@ -11,7 +11,7 @@ pub struct GetAuthRequestOptions<'a, T: AsRef<str>> {
     pub account_ids: &'a [T],
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetAuthRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetAuthRequest<'_, T> {
     type Response = GetAuthResponse;
     fn path(&self) -> String {
         "/auth/get".into()

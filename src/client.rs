@@ -1,10 +1,14 @@
-use http_client::h1::H1Client;
-use http_client::Error as HttpError;
+use hyper::{
+    client::{Client, HttpConnector},
+    Request,
+};
+use hyper_tls::HttpsConnector;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::model::*;
-use crate::HttpClient;
+
+type Connector = HttpsConnector<HttpConnector>;
 
 const SANDBOX_DOMAIN: &str = "https://sandbox.plaid.com";
 const DEVELOPMENT_DOMAIN: &str = "https://development.plaid.com";
@@ -15,7 +19,7 @@ const PRODUCTION_DOMAIN: &str = "https://production.plaid.com";
 pub enum ClientError {
     /// Wraps errors from the underlying HTTP client.
     #[error("http request failed: {0}")]
-    Http(HttpError),
+    Http(#[from] hyper::Error),
     /// Error either serializing request types or deserializing response types
     /// from requests.
     #[error(transparent)]
@@ -33,12 +37,6 @@ pub struct Credentials {
     pub client_id: String,
     /// Plaid API secret for the configured environment (e.g. sandbox, dev, prod).
     pub secret: String,
-}
-
-impl From<HttpError> for ClientError {
-    fn from(error: HttpError) -> Self {
-        Self::Http(error)
-    }
 }
 
 /// Environment controls the domain for the client, matches Plaid's sandbox,
@@ -75,15 +73,15 @@ impl std::string::ToString for Environment {
 }
 
 /// Plaid API client type.
-pub struct Plaid<T: HttpClient> {
-    http: T,
+pub struct Plaid {
+    http: Client<Connector>,
     credentials: Credentials,
     env: Environment,
 }
 
 /// Builder helps construct Plaid client types with sensible defaults.
 pub struct Builder {
-    http: Option<Box<dyn HttpClient>>,
+    http: Option<Client<Connector>>,
     credentials: Option<Credentials>,
     env: Option<Environment>,
 }
@@ -104,17 +102,17 @@ impl Builder {
     /// ```
     pub fn new() -> Self {
         Self {
-            http: None,
+            http: None::<Client<Connector>>,
             credentials: None,
             env: None,
         }
     }
 
     /// Override the default HTTP client.
-    pub fn with_http_client(mut self, client: impl HttpClient) -> Self {
-        self.http = Some(Box::new(client));
-        self
-    }
+    // pub fn with_http_client(mut self, client: impl HttpClient) -> Self {
+    //     self.http = Some(Box::new(client));
+    //     self
+    // }
 
     /// Set Plaid API credentials for authenticating Plaid API calls.
     pub fn with_credentials(mut self, creds: Credentials) -> Self {
@@ -129,8 +127,13 @@ impl Builder {
     }
 
     /// Consume a builder returning a Plaid client instance.
-    pub fn build(self) -> Plaid<Box<dyn HttpClient>> {
-        let http = self.http.unwrap_or_else(|| Box::new(H1Client::new()));
+    pub fn build(self) -> Plaid {
+        let http = self.http.unwrap_or_else(|| {
+            let https = HttpsConnector::new();
+
+            Client::builder().build::<_, hyper::Body>(https)
+        });
+
         Plaid {
             http,
             credentials: self.credentials.unwrap_or_default(),
@@ -139,26 +142,7 @@ impl Builder {
     }
 }
 
-impl<T: HttpClient> Plaid<T> {
-    /// Creates a new Plaid instance from a set of credentials and an HttpClient.
-    ///
-    /// ```
-    /// use rplaid::client::{Plaid, Credentials, Environment};
-    /// use http_client::h1::H1Client;
-    ///
-    /// let client = Plaid::new(
-    ///     H1Client::new(),
-    ///     Credentials{client_id: "".into(), secret: "".into()},
-    ///     Environment::Sandbox);
-    /// ```
-    pub fn new(http: T, credentials: Credentials, env: Environment) -> Self {
-        Self {
-            http,
-            credentials,
-            env,
-        }
-    }
-
+impl Plaid {
     async fn request<E: crate::model::Endpoint>(
         &self,
         endpoint: &E,
@@ -166,15 +150,28 @@ impl<T: HttpClient> Plaid<T> {
     where
         for<'de> <E as crate::model::Endpoint>::Response: serde::Deserialize<'de>,
     {
-        let mut post = endpoint.request(&self.env.to_string());
-        post.insert_header("Content-Type", "application/json");
-        post.insert_header("PLAID-CLIENT-ID", &self.credentials.client_id);
-        post.insert_header("PLAID-SECRET", &self.credentials.secret);
-        let mut res = self.http.send(post).await?;
+        let req = Request::builder()
+            .method("POST")
+            .uri(format!("{}{}", &self.env.to_string(), endpoint.path()))
+            .header("Content-Type", "application/json")
+            .header("PLAID-CLIENT-ID", &self.credentials.client_id)
+            .header("PLAID-SECRET", &self.credentials.secret)
+            .body(hyper::Body::from(endpoint.payload()))
+            .unwrap();
+
+        let res = self.http.request(req).await?;
 
         match res.status() {
-            http_client::http_types::StatusCode::Ok => Ok(res.body_json::<E::Response>().await?),
-            _ => Err(ClientError::from(res.body_json::<ErrorResponse>().await?)),
+            hyper::http::StatusCode::OK => {
+                let res_bytes = hyper::body::to_bytes(res.into_body()).await?;
+                Ok(serde_json::from_slice::<E::Response>(&res_bytes)?)
+            }
+            _ => {
+                let res_bytes = hyper::body::to_bytes(res.into_body()).await?;
+                Err(ClientError::from(serde_json::from_slice::<ErrorResponse>(
+                    &res_bytes,
+                )?))
+            }
         }
     }
 
@@ -182,7 +179,7 @@ impl<T: HttpClient> Plaid<T> {
     /// maximum of ten institutions per query.
     ///
     /// https://plaid.com/docs/api/institutions/#institutionssearch
-    pub async fn search_institutions<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn search_institutions<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &InstitutionsSearchRequest<'_, P>,
     ) -> Result<Vec<Institution>, ClientError> {
@@ -192,7 +189,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Returns details on an institution currently supported by plaid.
     ///
     /// https://plaid.com/docs/api/institutions/#institutionsget_by_id
-    pub async fn get_institution_by_id<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn get_institution_by_id<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &InstitutionGetRequest<'_, P>,
     ) -> Result<Institution, ClientError> {
@@ -205,7 +202,7 @@ impl<T: HttpClient> Plaid<T> {
     /// are filtered from results.
     ///
     /// https://plaid.com/docs/api/institutions/#institutionsget
-    pub async fn get_institutions<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn get_institutions<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &InstitutionsGetRequest<'_, P>,
     ) -> Result<Vec<Institution>, ClientError> {
@@ -217,7 +214,7 @@ impl<T: HttpClient> Plaid<T> {
     /// item.
     ///
     /// https://plaid.com/docs/api/sandbox/#sandboxpublic_tokencreate
-    pub async fn create_public_token<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn create_public_token<P: AsRef<str> + serde::Serialize>(
         &self,
         req: CreatePublicTokenRequest<'_, P>,
     ) -> Result<String, ClientError> {
@@ -228,7 +225,7 @@ impl<T: HttpClient> Plaid<T> {
     /// an Item whose login is no longer valid.
     ///
     /// https://plaid.com/docs/api/sandbox/#sandboxitemreset_login
-    pub async fn reset_login<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn reset_login<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
     ) -> Result<(), ClientError> {
@@ -246,12 +243,11 @@ impl<T: HttpClient> Plaid<T> {
     /// are ephemeral and expires after 30 minutes.
     ///
     /// https://plaid.com/docs/api/tokens/#itempublic_tokenexchange
-    pub async fn exchange_public_token<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn exchange_public_token<P: AsRef<str> + serde::Serialize>(
         &self,
         public_token: P,
     ) -> Result<ExchangePublicTokenResponse, ClientError> {
-        self
-            .request(&ExchangePublicTokenRequest { public_token })
+        self.request(&ExchangePublicTokenRequest { public_token })
             .await
     }
 
@@ -259,7 +255,7 @@ impl<T: HttpClient> Plaid<T> {
     /// a Link.
     ///
     /// https://plaid.com/docs/api/tokens/#linktokencreate
-    pub async fn create_link_token<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn create_link_token<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &CreateLinkTokenRequest<'_, P>,
     ) -> Result<CreateLinkTokenResponse, ClientError> {
@@ -271,7 +267,7 @@ impl<T: HttpClient> Plaid<T> {
     /// use `balances` instead.
     ///
     /// https://plaid.com/docs/api/accounts/#accountsget
-    pub async fn accounts<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn accounts<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
     ) -> Result<Vec<Account>, ClientError> {
@@ -287,7 +283,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Returns information about the status of an Item.
     ///
     /// https://plaid.com/docs/api/items/#itemget
-    pub async fn item<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn item<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
     ) -> Result<Item, ClientError> {
@@ -299,7 +295,7 @@ impl<T: HttpClient> Plaid<T> {
     /// associated with the Item.
     ///
     /// https://plaid.com/docs/api/items/#itemremove
-    pub async fn item_del<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn item_del<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
     ) -> Result<(), ClientError> {
@@ -312,7 +308,7 @@ impl<T: HttpClient> Plaid<T> {
     /// `WEBHOOK_UPDATE_ACKNOWLEDGED` event to the new webhook URL.
     ///
     /// https://plaid.com/docs/api/items/#itemwebhookupdate
-    pub async fn item_webhook_update<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn item_webhook_update<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
         webhook: P,
@@ -330,7 +326,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Link has been initialized with any other product.
     ///
     /// https://plaid.com/docs/api/products/#balance
-    pub async fn balances<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn balances<P: AsRef<str> + serde::Serialize>(
         &self,
         access_token: P,
     ) -> Result<Vec<Account>, ClientError> {
@@ -348,7 +344,7 @@ impl<T: HttpClient> Plaid<T> {
     /// data and balances when available.
     ///
     /// https://plaid.com/docs/api/products/#auth
-    pub async fn auth<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn auth<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &GetAuthRequest<'_, P>,
     ) -> Result<GetAuthResponse, ClientError> {
@@ -359,7 +355,7 @@ impl<T: HttpClient> Plaid<T> {
     /// against bank account information on file.
     ///
     /// https://plaid.com/docs/api/products/#identity
-    pub async fn identity<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn identity<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &GetIdentityRequest<'_, P>,
     ) -> Result<GetIdentityResponse, ClientError> {
@@ -371,7 +367,7 @@ impl<T: HttpClient> Plaid<T> {
     /// `SANDBOX_PRODUCT_NOT_ENABLED` error will result.
     ///
     /// https://plaid.com/docs/api/sandbox/#sandboxitemfire_webhook
-    pub async fn fire_webhook<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn fire_webhook<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &FireWebhookRequest<P>,
     ) -> Result<FireWebhookResponse, ClientError> {
@@ -382,7 +378,7 @@ impl<T: HttpClient> Plaid<T> {
     /// simulate the Automated Micro-deposit flow.
     ///
     /// https://plaid.com/docs/api/sandbox/#sandboxitemset_verification_status
-    pub async fn set_verification_status<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn set_verification_status<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &SetVerificationStatusRequest<P>,
     ) -> Result<SetVerificationStatusResponse, ClientError> {
@@ -393,7 +389,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Switch.
     ///
     /// https://plaid.com/docs/api/employers/
-    pub async fn search_employers<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn search_employers<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &SearchEmployerRequest<'_, P>,
     ) -> Result<SearchEmployerResponse, ClientError> {
@@ -403,7 +399,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Provides a JSON Web Key (JWK) that can be used to verify a JWT.
     ///
     /// https://plaid.com/docs/api/webhooks/webhook-verification/#webhook_verification_keyget
-    pub async fn create_webhook_verification_key<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn create_webhook_verification_key<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &GetWebhookVerificationKeyRequest<P>,
     ) -> Result<GetWebhookVerificationKeyResponse, ClientError> {
@@ -413,7 +409,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Gets information about a `link_token`, can be useful for debugging.
     ///
     /// https://plaid.com/docs/api/tokens/#linktokenget
-    pub async fn link_token<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn link_token<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &GetLinkTokenRequest<P>,
     ) -> Result<GetLinkTokenResponse, ClientError> {
@@ -424,7 +420,7 @@ impl<T: HttpClient> Plaid<T> {
     /// `access_token` and immediately invalidates the previous token.
     ///
     /// https://plaid.com/docs/api/tokens/#itemaccess_tokeninvalidate
-    pub async fn invalidate_access_token<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn invalidate_access_token<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &InvalidateAccessTokenRequest<P>,
     ) -> Result<InvalidateAccessTokenResponse, ClientError> {
@@ -446,7 +442,7 @@ impl<T: HttpClient> Plaid<T> {
     /// Item.
     ///
     /// https://plaid.com/docs/api/products/#transactionsrefresh
-    pub async fn refresh_transactions<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn refresh_transactions<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &RefreshTransactionsRequest<P>,
     ) -> Result<(), ClientError> {
@@ -461,7 +457,7 @@ impl<T: HttpClient> Plaid<T> {
     /// page.
     ///
     /// https://plaid.com/docs/api/products/#transactionsget
-    pub async fn transactions<P: AsRef<str> + http_types::convert::Serialize>(
+    pub async fn transactions<P: AsRef<str> + serde::Serialize>(
         &self,
         req: &GetTransactionsRequest<P>,
     ) -> Result<GetTransactionsResponse, ClientError> {
@@ -499,7 +495,7 @@ impl<T: HttpClient> Plaid<T> {
     ///   }
     /// ```
     #[cfg(feature = "streams")]
-    pub fn transactions_iter<'a, P: AsRef<str> + http_types::convert::Serialize + Clone + 'a>(
+    pub fn transactions_iter<'a, P: AsRef<str> + serde::Serialize + Clone + 'a>(
         &'a self,
         req: GetTransactionsRequest<P>,
     ) -> impl futures_core::stream::Stream<Item = Result<Vec<Transaction>, ClientError>> + 'a {

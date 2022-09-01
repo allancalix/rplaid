@@ -24,7 +24,7 @@ pub struct CreatePublicTokenOptionsTransactions<T: AsRef<str>> {
     pub end_date: Option<T>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for CreatePublicTokenRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for CreatePublicTokenRequest<'_, T> {
     type Response = CreatePublicTokenResponse;
 
     fn path(&self) -> String {
@@ -42,7 +42,7 @@ pub struct ResetLoginRequest<T: AsRef<str>> {
     pub access_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for ResetLoginRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for ResetLoginRequest<T> {
     type Response = ResetLoginResponse;
 
     fn path(&self) -> String {
@@ -63,7 +63,7 @@ pub struct SetVerificationStatusRequest<T: AsRef<str>> {
     pub verification_status: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for SetVerificationStatusRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for SetVerificationStatusRequest<T> {
     type Response = SetVerificationStatusResponse;
 
     fn path(&self) -> String {
@@ -89,7 +89,7 @@ pub enum WebhookCode {
     DefaultUpdate,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for FireWebhookRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for FireWebhookRequest<T> {
     type Response = FireWebhookResponse;
 
     fn path(&self) -> String {

@@ -15,7 +15,7 @@ pub struct GetAccountsRequestFilter<'a, T: AsRef<str>> {
     pub account_ids: &'a [T],
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetAccountsRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetAccountsRequest<'_, T> {
     type Response = GetAccountsResponse;
 
     fn path(&self) -> String {

@@ -23,7 +23,7 @@ pub struct PaymentInitiationFilter<T: AsRef<str>> {
     pub payment_id: Option<T>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for InstitutionsSearchRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for InstitutionsSearchRequest<'_, T> {
     type Response = InstitutionSearchResponse;
     fn path(&self) -> String {
         "/institutions/search".into()
@@ -51,7 +51,7 @@ pub struct GetInstitutionFilter {
     pub include_payment_initiation_metadata: Option<bool>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for InstitutionGetRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for InstitutionGetRequest<'_, T> {
     type Response = InstitutionGetResponse;
     fn path(&self) -> String {
         "/institutions/get_by_id".into()
@@ -91,7 +91,7 @@ pub struct GetInstitutionsFilter<'a, T: AsRef<str>> {
     pub include_payment_initiation_metadata: bool,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for InstitutionsGetRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for InstitutionsGetRequest<'_, T> {
     type Response = InstitutionsGetResponse;
     fn path(&self) -> String {
         "/institutions/get".into()

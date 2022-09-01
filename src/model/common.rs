@@ -1,19 +1,12 @@
 use super::*;
 
-pub(crate) trait Endpoint: HttpSerialize {
+pub(crate) trait Endpoint: serde::Serialize {
     type Response;
 
     fn path(&self) -> String;
 
-    fn request(&self, domain: &str) -> http_client::Request {
-        let mut req = http_client::Request::post(format!("{}{}", domain, self.path()).as_str());
-        req.set_body(self.payload());
-
-        req
-    }
-
-    fn payload(&self) -> http_types::Body {
-        http_types::Body::from_json(&self).unwrap()
+    fn payload(&self) -> String {
+        serde_json::to_string(&self).unwrap()
     }
 }
 

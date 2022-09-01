@@ -11,7 +11,7 @@ pub struct IdentityFilter<'a, T: AsRef<str>> {
     pub account_ids: &'a [T],
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetIdentityRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetIdentityRequest<'_, T> {
     type Response = GetIdentityResponse;
 
     fn path(&self) -> String {

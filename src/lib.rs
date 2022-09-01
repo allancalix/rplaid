@@ -62,9 +62,6 @@ pub mod client;
 /// Data types for entities returned by Plaid API endpoints.
 pub mod model;
 
-/// Re-exports HttpClient trait for implementing a custom HTTP client.
-pub use http_client::HttpClient;
-
 /// Re-exports Decimal type used for currency amounts.
 #[cfg(feature = "decimal")]
 pub use rust_decimal::Decimal;

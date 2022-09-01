@@ -11,7 +11,6 @@ mod token;
 mod transactions;
 mod webhooks;
 
-use http_types::convert::Serialize as HttpSerialize;
 use serde::{Deserialize, Serialize};
 
 pub use account::*;

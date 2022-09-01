@@ -12,7 +12,7 @@ pub struct AccountBalanceFilter<'a, T: AsRef<str>> {
     pub min_last_updated_datetime: Option<T>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for AccountBalancesGetRequest<'_, T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for AccountBalancesGetRequest<'_, T> {
     type Response = AccountBalancesGetResponse;
 
     fn path(&self) -> String {

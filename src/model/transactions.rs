@@ -13,7 +13,7 @@ pub struct GetTransactionsRequest<T: AsRef<str>> {
     pub options: Option<GetTransactionsOptions<T>>,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for GetTransactionsRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for GetTransactionsRequest<T> {
     type Response = GetTransactionsResponse;
 
     fn path(&self) -> String {
@@ -43,7 +43,7 @@ pub struct RefreshTransactionsRequest<T: AsRef<str>> {
     pub access_token: T,
 }
 
-impl<T: AsRef<str> + HttpSerialize> Endpoint for RefreshTransactionsRequest<T> {
+impl<T: AsRef<str> + serde::Serialize> Endpoint for RefreshTransactionsRequest<T> {
     type Response = RefreshTransactionsResponse;
 
     fn path(&self) -> String {
