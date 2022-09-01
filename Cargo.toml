@@ -21,17 +21,16 @@ streams = ["async-stream", "futures-core", "futures-util"]
 decimal = ["rust_decimal"]
 
 [dependencies]
+async-stream = { version = "0.3.2", optional = true }
+futures-core = { version = "0.3.17", optional = true }
+futures-util = { version = "0.3.17", optional = true }
 http-client = "6.5.1"
-tokio = { version = "1", features = ["macros"] }
 http-types = "2.12.0"
 rust_decimal = { version = "1.26", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0.28"
-async-stream = { version = "0.3.2", optional = true }
-futures-core = { version = "0.3.17", optional = true }
-futures-util = { version = "0.3.17", optional = true }
-insta = "1.7.2"
+tokio = { version = "1", features = ["macros"] }
 
 [dev-dependencies]
 insta = { version = "1.19", features = ["redactions", "json"] }
