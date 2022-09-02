@@ -1,3 +1,5 @@
+use std::iter::Extend;
+
 use hyper::{
     client::{Client, HttpConnector},
     Request,
@@ -464,6 +466,54 @@ impl Plaid {
         self.request(req).await
     }
 
+    /// Returns the set of transactions for the given access token _after_ the
+    /// provided cursor. If no cursor is provided, returns transactions from the
+    /// beginning of time. Results are paginated with the default page size set
+    /// to 100 transactions and the maximum set to 500.
+    ///
+    /// https://plaid.com/docs/api/products/transactions/#transactionssync
+    pub async fn transactions_sync<P: AsRef<str> + serde::Serialize>(
+        &self,
+        req: &SyncTransactionsRequest<P>,
+    ) -> Result<SyncTransactionsResponse, ClientError> {
+        self.request(req).await
+    }
+
+    /// Returns a Stream of transactions that can be used to iterative fetch
+    /// pages from the transaction endpoint. Each call will return the number of
+    /// items configured in the original request. The transactions will begin
+    /// after the last transaction if a cursor is provided.
+    #[cfg(feature = "streams")]
+    pub fn transactions_sync_iter<'a>(
+        &'a self,
+        req: SyncTransactionsRequest<String>,
+    ) -> impl futures_core::stream::Stream<Item = Result<Vec<TransactionStream>, ClientError>> + 'a
+    {
+        async_stream::try_stream! {
+            let mut request = req.clone();
+
+            loop {
+                let res = self.transactions_sync(&request).await?;
+
+                let mut txns = vec![];
+                txns.extend(res.added.into_iter().map(|txn| TransactionStream::Added(txn)));
+                txns.extend(res.modified.into_iter().map(|txn| TransactionStream::Modified(txn)));
+                txns.extend(res.removed.into_iter().map(|txn| TransactionStream::Removed(txn.transaction_id)));
+
+                if res.has_more {
+                    request.cursor = Some(res.next_cursor);
+                    yield txns;
+
+                    continue;
+                }
+
+                txns.push(TransactionStream::Done(res.next_cursor));
+
+                return yield txns;
+            }
+        }
+    }
+
     /// Returns a Stream of transactions that can be used to iterative fetch
     /// pages from the transaction endpoint. Each call will return the number of
     /// items configured in the original request.
@@ -782,6 +832,71 @@ mod tests {
             })
             .await;
         assert_eq!(xacts.len(), 4);
+    }
+
+    #[tokio::test]
+    async fn can_sync_transactions() {
+        let client = Builder::new().with_credentials(credentials()).build();
+        let public_token = client
+            .create_public_token(CreatePublicTokenRequest {
+                institution_id: INSTITUTION_ID,
+                initial_products: &["assets", "auth", "balance", "transactions"],
+                options: None,
+            })
+            .await
+            .unwrap();
+
+        let res = client.exchange_public_token(public_token).await.unwrap();
+        assert!(!res.access_token.is_empty());
+        // Calling refresh before requesting transactions prevents
+        // `PRODUCT_NOT_READY` errors.
+        client
+            .refresh_transactions(&RefreshTransactionsRequest {
+                access_token: &res.access_token,
+            })
+            .await
+            .unwrap();
+
+        let req = SyncTransactionsRequest {
+            access_token: res.access_token.clone(),
+            count: Some(250),
+            ..Default::default()
+        };
+        let iter = client.transactions_sync_iter(req);
+        pin_mut!(iter);
+
+        // Drain transactions stream;
+        let txns = iter
+            .fold(vec![], |mut acc, x| async move {
+                acc.append(&mut x.unwrap());
+                acc
+            })
+            .await;
+
+        let next_cursor = txns.last().unwrap();
+        assert!(matches!(next_cursor, TransactionStream::Done(_)));
+
+        if let TransactionStream::Done(cursor) = next_cursor {
+            let req = SyncTransactionsRequest {
+                access_token: res.access_token.clone(),
+                cursor: Some(cursor.to_string()),
+                ..Default::default()
+            };
+
+            let iter = client.transactions_sync_iter(req);
+            pin_mut!(iter);
+
+            let txns = iter
+                .fold(vec![], |mut acc, x| async move {
+                    acc.append(&mut x.unwrap());
+                    acc
+                })
+                .await;
+
+            return assert_eq!(txns.len(), 1);
+        }
+
+        unreachable!("cursor returned at end of drained stream must not return txns")
     }
 
     #[tokio::test]

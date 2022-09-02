@@ -3,6 +3,56 @@ use rust_decimal::Decimal;
 
 use super::*;
 
+#[derive(Debug, Serialize, Copy, Clone, Default)]
+pub struct SyncTransactionsRequest<T: AsRef<str>> {
+    pub access_token: T,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub options: Option<SyncTransactionsRequestOptions>,
+}
+
+#[derive(Debug, Serialize, Copy, Clone)]
+pub struct SyncTransactionsRequestOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_original_description: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_personal_finance_category: Option<bool>,
+}
+
+impl<T: AsRef<str> + serde::Serialize> Endpoint for SyncTransactionsRequest<T> {
+    type Response = SyncTransactionsResponse;
+
+    fn path(&self) -> String {
+        "/transactions/sync".into()
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SyncTransactionsResponse {
+    pub added: Vec<Transaction>,
+    pub modified: Vec<Transaction>,
+    pub removed: Vec<RemovedTransaction>,
+    pub next_cursor: String,
+    pub has_more: bool,
+    pub request_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TransactionStream {
+    Added(Transaction),
+    Modified(Transaction),
+    Removed(String),
+    Done(String),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RemovedTransaction {
+    pub transaction_id: String,
+}
+
 #[derive(Debug, Serialize, Copy, Clone)]
 pub struct GetTransactionsRequest<T: AsRef<str>> {
     pub access_token: T,
