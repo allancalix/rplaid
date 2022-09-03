@@ -485,11 +485,10 @@ impl Plaid {
     /// items configured in the original request. The transactions will begin
     /// after the last transaction if a cursor is provided.
     #[cfg(feature = "streams")]
-    pub fn transactions_sync_iter<'a>(
-        &'a self,
+    pub fn transactions_sync_iter(
+        &self,
         req: SyncTransactionsRequest<String>,
-    ) -> impl Stream<Item = Result<Vec<TransactionStream>, ClientError>> + 'a
-    {
+    ) -> impl Stream<Item = Result<Vec<TransactionStream>, ClientError>> + '_ {
         async_stream::try_stream! {
             let mut request = req.clone();
 
@@ -586,8 +585,7 @@ impl Plaid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::pin_mut;
-    use futures_util::StreamExt;
+    use futures_lite::stream::StreamExt;
 
     const INSTITUTION_ID: &str = "ins_129571";
 
@@ -824,15 +822,13 @@ mod tests {
             }),
         };
         let iter = client.transactions_iter(req);
-        pin_mut!(iter);
+        futures_lite::pin!(iter);
 
-        let xacts = iter
-            .fold(vec![], |mut acc, x| async move {
-                acc.append(&mut x.unwrap());
-                acc
-            })
-            .await;
-        assert_eq!(xacts.len(), 4);
+        let mut txns = vec![];
+        while let Some(txn) = iter.next().await {
+            txns.extend(txn.unwrap());
+        }
+        assert_eq!(txns.len(), 4);
     }
 
     #[tokio::test]
@@ -864,19 +860,14 @@ mod tests {
             ..Default::default()
         };
         let iter = client.transactions_sync_iter(req);
-        pin_mut!(iter);
+        futures_lite::pin!(iter);
 
-        // Drain transactions stream;
-        let txns = iter
-            .fold(vec![], |mut acc, x| async move {
-                acc.append(&mut x.unwrap());
-                acc
-            })
-            .await;
+        let mut txns = vec![];
+        while let Some(txn) = iter.next().await {
+            txns.extend(txn.unwrap());
+        }
 
         let next_cursor = txns.last().unwrap();
-        assert!(matches!(next_cursor, TransactionStream::Done(_)));
-
         if let TransactionStream::Done(cursor) = next_cursor {
             let req = SyncTransactionsRequest {
                 access_token: res.access_token.clone(),
@@ -885,14 +876,12 @@ mod tests {
             };
 
             let iter = client.transactions_sync_iter(req);
-            pin_mut!(iter);
+            futures_lite::pin!(iter);
 
-            let txns = iter
-                .fold(vec![], |mut acc, x| async move {
-                    acc.append(&mut x.unwrap());
-                    acc
-                })
-                .await;
+            let mut txns = vec![];
+            while let Some(txn) = iter.next().await {
+                txns.extend(txn.unwrap());
+            }
 
             return assert_eq!(txns.len(), 1);
         }
