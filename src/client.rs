@@ -1,5 +1,6 @@
 use std::iter::Extend;
 
+use futures_core::stream::Stream;
 use hyper::{
     client::{Client, HttpConnector},
     Request,
@@ -487,7 +488,7 @@ impl Plaid {
     pub fn transactions_sync_iter<'a>(
         &'a self,
         req: SyncTransactionsRequest<String>,
-    ) -> impl futures_core::stream::Stream<Item = Result<Vec<TransactionStream>, ClientError>> + 'a
+    ) -> impl Stream<Item = Result<Vec<TransactionStream>, ClientError>> + 'a
     {
         async_stream::try_stream! {
             let mut request = req.clone();
@@ -548,7 +549,7 @@ impl Plaid {
     pub fn transactions_iter<'a, P: AsRef<str> + serde::Serialize + Clone + 'a>(
         &'a self,
         req: GetTransactionsRequest<P>,
-    ) -> impl futures_core::stream::Stream<Item = Result<Vec<Transaction>, ClientError>> + 'a {
+    ) -> impl Stream<Item = Result<Vec<Transaction>, ClientError>> + 'a {
         async_stream::try_stream! {
             let mut yielded = 0;
             let mut total_xacts = None;
