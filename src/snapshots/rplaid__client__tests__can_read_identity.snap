@@ -147,7 +147,10 @@ expression: res
     "error": null,
     "available_products": [
       "assets",
-      "balance"
+      "balance",
+      "signal",
+      "identity_match",
+      "recurring_transactions"
     ],
     "billed_products": [
       "auth",

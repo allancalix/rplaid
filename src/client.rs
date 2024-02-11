@@ -1,6 +1,3 @@
-use std::iter::Extend;
-
-use futures_core::stream::Stream;
 use hyper::{
     client::{Client, HttpConnector},
     Request,
@@ -45,12 +42,14 @@ pub struct Credentials {
 /// Environment controls the domain for the client, matches Plaid's sandbox,
 /// development, and production environments.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum Environment {
     /// Used to configure the client to request against a the domain in the string.
     /// Should be a fully qualified domain with protocol and scheme, for example
     /// http://localhost:3000.
     Custom(String),
     /// Plaid sandbox environment.
+    #[default]
     Sandbox,
     /// Plaid development environment.
     Development,
@@ -58,11 +57,7 @@ pub enum Environment {
     Production,
 }
 
-impl std::default::Default for Environment {
-    fn default() -> Self {
-        Environment::Sandbox
-    }
-}
+
 
 impl std::string::ToString for Environment {
     fn to_string(&self) -> String {
@@ -479,113 +474,11 @@ impl Plaid {
     ) -> Result<SyncTransactionsResponse, ClientError> {
         self.request(req).await
     }
-
-    /// Returns a Stream of transactions that can be used to iterative fetch
-    /// pages from the transaction endpoint. Each call will return the number of
-    /// items configured in the original request. The transactions will begin
-    /// after the last transaction if a cursor is provided.
-    #[cfg(feature = "streams")]
-    pub fn transactions_sync_iter(
-        &self,
-        req: SyncTransactionsRequest<String>,
-    ) -> impl Stream<Item = Result<Vec<TransactionStream>, ClientError>> + '_ {
-        async_stream::try_stream! {
-            let mut request = req.clone();
-
-            loop {
-                let res = self.transactions_sync(&request).await?;
-
-                let mut txns = vec![];
-                txns.extend(res.added.into_iter().map(|txn| TransactionStream::Added(txn)));
-                txns.extend(res.modified.into_iter().map(|txn| TransactionStream::Modified(txn)));
-                txns.extend(res.removed.into_iter().map(|txn| TransactionStream::Removed(txn.transaction_id)));
-
-                if res.has_more {
-                    request.cursor = Some(res.next_cursor);
-                    yield txns;
-
-                    continue;
-                }
-
-                txns.push(TransactionStream::Done(res.next_cursor));
-
-                return yield txns;
-            }
-        }
-    }
-
-    /// Returns a Stream of transactions that can be used to iterative fetch
-    /// pages from the transaction endpoint. Each call will return the number of
-    /// items configured in the original request.
-    ///
-    /// ```ignore
-    /// use futures_util::pin_mut;
-    /// use futures_util::StreamExt;
-    ///
-    /// ...
-    ///
-    ///   let req = GetTransactionsRequest {
-    ///       access_token: res.access_token.as_str(),
-    ///       start_date: "2019-09-01",
-    ///       end_date: "2021-09-05",
-    ///       options: Some(GetTransactionsOptions {
-    ///           // Number of items to return per page.
-    ///           count: Some(10),
-    ///           // Number of items from the start_date to offset results by.
-    ///           offset: Some(5),
-    ///           account_ids: None,
-    ///           include_original_description: None,
-    ///       }),
-    ///   };
-    ///   let iter = client.transactions_iter(req);
-    ///   pin_mut!(iter);
-    ///
-    ///   while let Some(txn) = iter.next().await {
-    ///     println!("{:?}", txn);
-    ///   }
-    /// ```
-    #[cfg(feature = "streams")]
-    pub fn transactions_iter<'a, P: AsRef<str> + serde::Serialize + Clone + 'a>(
-        &'a self,
-        req: GetTransactionsRequest<P>,
-    ) -> impl Stream<Item = Result<Vec<Transaction>, ClientError>> + 'a {
-        async_stream::try_stream! {
-            let mut yielded = 0;
-            let mut total_xacts = None;
-            let mut request = req.clone();
-            let count = req.options.as_ref().unwrap().count.unwrap_or(100);
-            let mut offset = req.options.as_ref().unwrap().offset.unwrap_or(0);
-
-            while total_xacts.is_none() || total_xacts.unwrap() > yielded {
-                if let Some(ref mut opts) = &mut request.options {
-                    opts.count = Some(count);
-                    opts.offset = Some(offset);
-                } else {
-                    request.options = Some(GetTransactionsOptions{
-                        count: Some(count),
-                        offset: Some(offset),
-                        account_ids: None,
-                        include_original_description: None,
-                    });
-                }
-
-                let res = self.transactions(&request).await?;
-                if total_xacts.is_none() {
-                    total_xacts = Some(res.total_transactions - offset);
-                }
-                yielded += res.transactions.len();
-                offset += yielded;
-
-                yield res.transactions;
-            }
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_lite::stream::StreamExt;
 
     const INSTITUTION_ID: &str = "ins_129571";
 
@@ -635,7 +528,7 @@ mod tests {
         let res = client
             .get_institution_by_id(&InstitutionGetRequest {
                 institution_id: INSTITUTION_ID,
-                country_codes: &[],
+                country_codes: &["US"],
                 options: None,
             })
             .await
@@ -650,7 +543,7 @@ mod tests {
         let res = client
             .search_institutions(&InstitutionsSearchRequest {
                 query: "Banque Populaire",
-                country_codes: &[],
+                country_codes: &["US"],
                 products: None,
                 options: None,
             })
@@ -666,7 +559,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance"],
+                initial_products: &["assets", "auth"],
                 options: None,
             })
             .await
@@ -684,7 +577,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance"],
+                initial_products: &["assets", "auth"],
                 options: None,
             })
             .await
@@ -705,7 +598,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance"],
+                initial_products: &["assets", "auth"],
                 options: None,
             })
             .await
@@ -755,7 +648,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: None,
             })
             .await
@@ -763,14 +656,8 @@ mod tests {
 
         let res = client.exchange_public_token(public_token).await.unwrap();
         assert!(!res.access_token.is_empty());
-        // Calling refresh before requesting transactions prevents
-        // `PRODUCT_NOT_READY` errors.
-        client
-            .refresh_transactions(&RefreshTransactionsRequest {
-                access_token: &res.access_token,
-            })
-            .await
-            .unwrap();
+
+        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         let res = client
             .transactions(&GetTransactionsRequest {
                 access_token: res.access_token.as_str(),
@@ -788,108 +675,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn can_drain_transaction_stream() {
-        let client = Builder::new().with_credentials(credentials()).build();
-        let public_token = client
-            .create_public_token(CreatePublicTokenRequest {
-                institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
-                options: None,
-            })
-            .await
-            .unwrap();
-
-        let res = client.exchange_public_token(public_token).await.unwrap();
-        assert!(!res.access_token.is_empty());
-        // Calling refresh before requesting transactions prevents
-        // `PRODUCT_NOT_READY` errors.
-        client
-            .refresh_transactions(&RefreshTransactionsRequest {
-                access_token: &res.access_token,
-            })
-            .await
-            .unwrap();
-
-        let req = GetTransactionsRequest {
-            access_token: res.access_token.as_str(),
-            start_date: "2021-09-01",
-            end_date: "2021-09-05",
-            options: Some(GetTransactionsOptions {
-                count: Some(10),
-                offset: Some(2),
-                account_ids: None,
-                include_original_description: None,
-            }),
-        };
-        let iter = client.transactions_iter(req);
-        futures_lite::pin!(iter);
-
-        let mut txns = vec![];
-        while let Some(txn) = iter.next().await {
-            txns.extend(txn.unwrap());
-        }
-        assert_eq!(txns.len(), 4);
-    }
-
-    #[tokio::test]
-    async fn can_sync_transactions() {
-        let client = Builder::new().with_credentials(credentials()).build();
-        let public_token = client
-            .create_public_token(CreatePublicTokenRequest {
-                institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
-                options: None,
-            })
-            .await
-            .unwrap();
-
-        let res = client.exchange_public_token(public_token).await.unwrap();
-        assert!(!res.access_token.is_empty());
-        // Calling refresh before requesting transactions prevents
-        // `PRODUCT_NOT_READY` errors.
-        client
-            .refresh_transactions(&RefreshTransactionsRequest {
-                access_token: &res.access_token,
-            })
-            .await
-            .unwrap();
-
-        let req = SyncTransactionsRequest {
-            access_token: res.access_token.clone(),
-            count: Some(250),
-            ..Default::default()
-        };
-        let iter = client.transactions_sync_iter(req);
-        futures_lite::pin!(iter);
-
-        let mut txns = vec![];
-        while let Some(txn) = iter.next().await {
-            txns.extend(txn.unwrap());
-        }
-
-        let next_cursor = txns.last().unwrap();
-        if let TransactionStream::Done(cursor) = next_cursor {
-            let req = SyncTransactionsRequest {
-                access_token: res.access_token.clone(),
-                cursor: Some(cursor.to_string()),
-                ..Default::default()
-            };
-
-            let iter = client.transactions_sync_iter(req);
-            futures_lite::pin!(iter);
-
-            let mut txns = vec![];
-            while let Some(txn) = iter.next().await {
-                txns.extend(txn.unwrap());
-            }
-
-            return assert_eq!(txns.len(), 1);
-        }
-
-        unreachable!("cursor returned at end of drained stream must not return txns")
-    }
-
-    #[tokio::test]
     async fn can_read_categories() {
         let client = Builder::new().with_credentials(credentials()).build();
         let res = client.categories(&GetCategoriesRequest {}).await.unwrap();
@@ -902,7 +687,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: None,
             })
             .await
@@ -924,7 +709,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: None,
             })
             .await
@@ -953,7 +738,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: None,
             })
             .await
@@ -981,7 +766,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: None,
             })
             .await
@@ -1005,7 +790,7 @@ mod tests {
         let public_token = client
             .create_public_token(CreatePublicTokenRequest {
                 institution_id: INSTITUTION_ID,
-                initial_products: &["assets", "auth", "balance", "transactions"],
+                initial_products: &["assets", "auth", "transactions"],
                 options: Some(CreatePublicTokenOptions {
                     webhook: Some("localhost:3000"),
                     override_username: None,

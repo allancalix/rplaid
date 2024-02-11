@@ -1,7 +1,7 @@
 use rplaid::client::{Builder, Credentials};
 use rplaid::model::*;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let client = Builder::new()
         .with_credentials(Credentials {

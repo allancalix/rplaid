@@ -10,7 +10,12 @@ expression: res
     "auth",
     "balance",
     "transactions",
-    "identity"
+    "signal",
+    "identity_match",
+    "identity",
+    "processor_payments",
+    "recurring_transactions",
+    "transfer"
   ],
   "country_codes": [
     "US"

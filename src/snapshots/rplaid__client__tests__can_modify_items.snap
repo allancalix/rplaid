@@ -10,7 +10,10 @@ expression: item
   "available_products": [
     "assets",
     "balance",
+    "signal",
     "identity",
+    "identity_match",
+    "recurring_transactions",
     "transactions"
   ],
   "billed_products": [

@@ -167,7 +167,10 @@ expression: res
     "available_products": [
       "assets",
       "balance",
-      "identity"
+      "signal",
+      "identity",
+      "identity_match",
+      "recurring_transactions"
     ],
     "billed_products": [
       "auth",

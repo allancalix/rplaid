@@ -1,6 +1,6 @@
 [package]
 name = "rplaid"
-version = "0.5.0-alpha.0"
+version = "0.5.0-alpha.1"
 authors = ["Allan Calix <allan@acx.dev>"]
 edition = "2021"
 description = """
@@ -16,21 +16,26 @@ exclude = ["/.github/*"]
 license = "MIT"
 
 [features]
-default = ["streams"]
-streams = ["async-stream", "futures-core"]
+default = []
 decimal = ["rust_decimal"]
 
 [dependencies]
-async-stream = { version = "0.3.2", optional = true }
-futures-core = { version = "0.3.17", optional = true }
-hyper = { version = "0.14", default-fatures = false, features = ["client", "http1"] }
+hyper = { version = "0.14", default-features = false, features = [
+    "client",
+    "http1",
+] }
 hyper-tls = "0.5"
-rust_decimal = { version = "1.26", optional = true }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-thiserror = "1.0"
+rust_decimal = { version = "1.34", optional = true }
+serde = { version = "1", default-features = false, features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
 
 [dev-dependencies]
-futures-lite = "1.12"
-insta = { version = "1.19", features = ["redactions", "json"] }
-tokio = { version = "1.20", default-features = false, features = ["macros", "test-util", "rt-multi-thread"] }
+insta = { version = "1.34", default-features = false, features = [
+    "redactions",
+    "json",
+] }
+tokio = { version = "1.36", default-features = false, features = [
+    "macros",
+    "test-util",
+] }
