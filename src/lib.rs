@@ -41,10 +41,6 @@ This crate provides a few features that make working with Plaid's APIs more
 ergonomic. Without these features the crate works like a 1:1 translation of
 Plaid's APIs.
 
-* **streams** -
-  When enabled this will add a new method for consuming all transactions available
-  from a future stream without having to worry about pagination or cursors.
-
 * **decimal** -
   When enabled currency amounts in response payloads will be parsed as
   `rust_decimal::Decimal` types for more correct use in computations.
