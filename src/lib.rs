@@ -57,6 +57,7 @@ https://docs.google.com/spreadsheets/d/1xqUXdfllo37Rx5MVrQODbVqNQvuktiCVL5Uh8y9m
 pub mod client;
 /// Data types for entities returned by Plaid API endpoints.
 pub mod model;
+pub mod api;
 
 /// Re-exports Decimal type used for currency amounts.
 #[cfg(feature = "decimal")]

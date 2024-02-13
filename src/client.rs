@@ -10,9 +10,9 @@ use crate::model::*;
 
 type Connector = HttpsConnector<HttpConnector>;
 
-const SANDBOX_DOMAIN: &str = "https://sandbox.plaid.com";
-const DEVELOPMENT_DOMAIN: &str = "https://development.plaid.com";
-const PRODUCTION_DOMAIN: &str = "https://production.plaid.com";
+const SANDBOX_DOMAIN: &str = "sandbox.plaid.com";
+const DEVELOPMENT_DOMAIN: &str = "development.plaid.com";
+const PRODUCTION_DOMAIN: &str = "production.plaid.com";
 
 /// Error returned by client requests.
 #[derive(Error, Debug)]
@@ -28,6 +28,9 @@ pub enum ClientError {
     /// Plaid successfully returned a response but returned with errors.
     #[error(transparent)]
     App(#[from] ErrorResponse),
+    /// Wraps errors from the underlying HTTP client.
+    #[error("http request failed: {0}")]
+    HttpBasic(#[from] http::Error),
 }
 
 /// Credentials required to make authenticated calls to the Plaid API.
